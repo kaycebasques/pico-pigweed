@@ -1,3 +1,8 @@
+# Just a convenience script for properly initializing Git submodules
+# because it never seems to work correctly for me...
+
+import os
+
 submodules = [
     ("third_party/pcb/esp-rust-board", "https://github.com/esp-rs/esp-rust-board"),
     ("third_party/pcb/gekkio-kicad-libs", "https://github.com/Gekkio/gekkio-kicad-libs"),
@@ -10,4 +15,5 @@ submodules = [
 ]
 
 for submodule in submodules:
-    print(submodule)
+    command = f'git submodule add {submodule[1]} {submodule[0]}'
+    os.system(command)

@@ -1,0 +1,21 @@
+[submodule "third_party/pcb/esp-rust-board"]
+	path = third_party/pcb/esp-rust-board
+	url = https://github.com/esp-rs/esp-rust-board
+[submodule "third_party/pcb/gekkio-kicad-libs"]
+	path = third_party/pcb/gekkio-kicad-libs
+	url = https://github.com/Gekkio/gekkio-kicad-libs
+[submodule "third_party/pigweed"]
+	path = third_party/pigweed
+	url = https://pigweed.googlesource.com/pigweed/pigweed
+[submodule "third_party/freertos"]
+	path = third_party/freertos
+	url = https://pigweed.googlesource.com/third_party/github/FreeRTOS/FreeRTOS-Kernel.git
+[submodule "third_party/pcb/espressif-kicad-libraries"]
+	path = third_party/pcb/espressif-kicad-libraries
+	url = https://github.com/espressif/kicad-libraries
+[submodule "third_party/32blit-sdk"]
+	path = third_party/32blit-sdk
+	url = https://github.com/32blit/32blit-sdk
+[submodule "third_party/pico-sdk"]
+	path = third_party/pico-sdk
+	url = https://pigweed.googlesource.com/third_party/github/raspberrypi/pico-sdk
