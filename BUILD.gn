@@ -1,0 +1,96 @@
+# Copyright 2023 The Pigweed Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+
+import("//build_overrides/pi_pico.gni")
+import("//build_overrides/pigweed.gni")
+
+import("$dir_pw_arduino_build/arduino.gni")
+import("$dir_pw_build/python.gni")
+import("$dir_pw_build/python_dist.gni")
+import("$dir_pw_build/python_venv.gni")
+import("$dir_pw_unit_test/test.gni")
+
+# All the targets build by default with e.g. `ninja -C out`.
+group("default") {
+  deps = [
+    ":applications",
+    ":kudzu_python.lint",
+    ":kudzu_python.tests",
+    ":python.install",
+  ]
+}
+
+group("applications") {
+  deps = [
+    "//applications/32blit_demo:all(//targets/host:host_device_simulator.speed_optimized)",
+    "//applications/32blit_demo:all(//targets/rp2040:rp2040.size_optimized)",
+    "//applications/badge:all(//targets/host:host_device_simulator.speed_optimized)",
+    "//applications/badge:all(//targets/rp2040:rp2040.size_optimized)",
+    "//applications/snake:all(//targets/host:host_device_simulator.speed_optimized)",
+    "//applications/snake:all(//targets/rp2040:rp2040.size_optimized)",
+    "//applications/terminal_display:all(//targets/host:host_device_simulator.speed_optimized)",
+    "//applications/terminal_display:all(//targets/rp2040:rp2040.size_optimized)",
+  ]
+}
+
+# Python Targets
+_kudzu_python_packages = [ "//tools" ]
+
+# Pigweed Python packages to include
+_pigweed_python_packages = [
+  "$dir_pw_env_setup:core_pigweed_python_packages",
+  "$dir_pigweed_experimental/tools",
+  "$dir_pigweed_experimental/pw_graphics/py",
+]
+
+_all_python_packages = _kudzu_python_packages + _pigweed_python_packages
+
+pw_python_group("kudzu_python") {
+  python_deps = _kudzu_python_packages
+}
+
+pw_python_venv("kudzu_build_venv") {
+  path = "$root_build_dir/python-venv"
+  source_packages = _all_python_packages
+}
+
+# This template collects all python packages and their dependencies into a
+# single super Python package for installation into the bootstrapped virtual
+# environment.
+pw_python_distribution("kudzu_python_distribution") {
+  packages = _all_python_packages
+  generate_setup_cfg = {
+    name = "kudzu-dist"
+    version = "0.0.1"
+    append_date_to_version = true
+    include_default_pyproject_file = true
+  }
+}
+
+pw_python_pip_install("pip_install_kudzu_dist") {
+  packages = [ ":kudzu_python_distribution" ]
+}
+
+pw_python_pip_install("pip_install_kudzu_editable_tools") {
+  packages = _kudzu_python_packages
+  editable = true
+}
+
+pw_python_group("python") {
+  python_deps = [
+    # Generate and pip install _pigweed_python_packages
+    ":pip_install_kudzu_dist",
+    ":pip_install_kudzu_editable_tools",
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "pw": {
+    "pw_cli": {
+      "plugins": {
+        "build": {
+          "module": "kudzu_tools.build_project",
+          "function": "build_project"
+        },
+        "watch": {
+          "module": "kudzu_tools.build_project",
+          "function": "watch_project"
+        },
+        "presubmit": {
+          "module": "kudzu_tools.presubmit_checks",
+          "function": "main"
+        },
+        "heap-viewer": {
+          "module": "pw_allocator.heap_viewer",
+          "function": "main"
+        },
+        "ide": {
+          "module": "pw_ide.__main__",
+          "function": "main"
+        },
+        "console": {
+          "module": "kudzu_tools.console",
+          "function": "main"
+        },
+        "package": {
+          "module": "pigweed_experimental_tools.experimental_packages",
+          "function": "main"
+        }
+      }
+    },
+    "pw_env_setup": {
+      "root_variable": "KUDZU_ROOT",
+      "relative_pigweed_root": "third_party/pigweed",
+      "rosetta": "allow",
+      "cipd_package_files": [
+        "third_party/pigweed/pw_env_setup/py/pw_env_setup/cipd_setup/default.json",
+        "third_party/pigweed/pw_env_setup/py/pw_env_setup/cipd_setup/cmake.json"
+      ],
+      "virtualenv": {
+        "gn_root": ".",
+        "gn_targets": [
+          ":python.install"
+        ]
+      },
+      "gni_file": "build_overrides/pigweed_environment.gni",
+      "required_submodules": [
+        "third_party/32blit-sdk",
+        "third_party/freertos",
+        "third_party/pcb/esp-rust-board",
+        "third_party/pcb/espressif-kicad-libraries",
+        "third_party/pcb/gekkio-kicad-libs",
+        "third_party/pico-sdk",
+        "third_party/pico-sdk/lib/tinyusb",
+        "third_party/pigweed",
+        "third_party/pigweed-experimental"
+      ],
+      "pw_packages": [
+        "glfw",
+        "imgui"
+      ]
+    }
+  }
+}

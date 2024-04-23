@@ -1,0 +1,151 @@
+# Copyright 2022 The Pigweed Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+
+import("//build_overrides/pi_pico.gni")
+import("//build_overrides/pigweed.gni")
+import("$dir_pigweed_experimental/third_party/imgui/imgui.gni")
+import("$dir_pw_build/target_types.gni")
+import("app_common_vars.gni")
+
+config("common_flags") {
+  cflags = [
+    "-DDISPLAY_WIDTH=" + pw_app_common_DISPLAY_WIDTH,
+    "-DDISPLAY_HEIGHT=" + pw_app_common_DISPLAY_HEIGHT,
+    "-DDISPLAY_RESET_GPIO=" + pw_app_common_DISPLAY_RESET_GPIO,
+    "-DDISPLAY_TE_GPIO=" + pw_app_common_DISPLAY_TE_GPIO,
+    "-DBACKLIGHT_GPIO=" + pw_app_common_BACKLIGHT_GPIO,
+    "-DFRAMEBUFFER_WIDTH=" + pw_app_common_FRAMEBUFFER_WIDTH,
+    "-DFRAMEBUFFER_START_X=" + pw_app_common_FRAMEBUFFER_START_X,
+    "-DFRAMEBUFFER_START_Y=" + pw_app_common_FRAMEBUFFER_START_Y,
+  ]
+}
+
+config("spi_flags") {
+  cflags = [
+    "-DDISPLAY_CS_GPIO=" + pw_app_common_DISPLAY_CS_GPIO,
+    "-DDISPLAY_DC_GPIO=" + pw_app_common_DISPLAY_DC_GPIO,
+    "-DSPI_MISO_GPIO=" + pw_app_common_SPI_MISO_GPIO,
+    "-DSPI_MOSI_GPIO=" + pw_app_common_SPI_MOSI_GPIO,
+    "-DSPI_CLOCK_GPIO=" + pw_app_common_SPI_CLOCK_GPIO,
+  ]
+}
+
+config("rp2040_pio_flags") {
+  cflags = [
+    "-DUSE_PIO=1",
+    # Overclock the rp2040 in common_pico.cc
+    # "-DOVERCLOCK_250=1",
+  ]
+}
+
+config("rp2040_i2c_flags") {
+  cflags = [
+    "-DI2C_BUS0_SCL=" + pw_app_common_I2C_BUS0_SCL,
+    "-DI2C_BUS0_SDA=" + pw_app_common_I2C_BUS0_SDA,
+    "-DI2C_BUS1_SCL=" + pw_app_common_I2C_BUS1_SCL,
+    "-DI2C_BUS1_SDA=" + pw_app_common_I2C_BUS1_SDA,
+  ]
+}
+
+_pico_common_deps = [
+  "$PICO_ROOT/src/common/pico_base",
+  "$PICO_ROOT/src/common/pico_stdlib",
+  "$PICO_ROOT/src/rp2_common/hardware_adc",
+  "$PICO_ROOT/src/rp2_common/hardware_pwm",
+  "$PICO_ROOT/src/rp2_common/hardware_spi",
+  "$PICO_ROOT/src/rp2_common/hardware_vreg",
+  "$dir_pw_digital_io_rp2040",
+  "$dir_pw_i2c_rp2040",
+  "$dir_pw_log",
+  "$dir_pw_spi:chip_selector_digital_out",
+  "$dir_pw_spi_rp2040",
+  "$dir_pw_sync:borrow",
+  "$dir_pw_sync:mutex",
+  "$dir_pw_thread:thread",
+  "$dir_pw_thread_freertos:thread",
+  "$dir_pwexperimental_display",
+  "$dir_pwexperimental_framebuffer_pool",
+  "//applications/app_common:app_common.facade",
+  "//lib/ft6236",
+  "//lib/icm42670p",
+  "//lib/kudzu_imu_icm42670p",
+  "//lib/max17048",
+  "//lib/pi4ioe5v6416",
+]
+
+pw_source_set("pico_st7789") {
+  public_configs = [
+    ":common_flags",
+    ":spi_flags",
+    ":rp2040_i2c_flags",
+  ]
+  cflags = [ "-DDISPLAY_TYPE_ST7789" ]
+  deps = _pico_common_deps
+  deps += [ "$dir_pwexperimental_display_driver_st7789" ]
+  sources = [ "common_pico.cc" ]
+  remove_configs = [ "$dir_pw_build:strict_warnings" ]
+}
+
+pw_source_set("pico_st7789_pio") {
+  public_configs = [
+    ":common_flags",
+    ":spi_flags",
+    ":rp2040_pio_flags",
+    ":rp2040_i2c_flags",
+  ]
+  cflags = [ "-DDISPLAY_TYPE_ST7789_PIO" ]
+  deps = _pico_common_deps
+  deps += [
+    "$dir_pwexperimental_display_driver_st7789",
+    "$dir_pwexperimental_pixel_pusher_rp2040_pio",
+    "//lib/kudzu_buttons_pi4ioe5v6416",
+    "//lib/pw_touchscreen_ft6236",
+  ]
+  sources = [ "common_pico.cc" ]
+  remove_configs = [ "$dir_pw_build:strict_warnings" ]
+}
+
+pw_source_set("host_imgui") {
+  public_configs = [ ":common_flags" ]
+  deps = [
+    "$dir_pw_thread:thread",
+    "$dir_pw_thread_stl:thread",
+    "$dir_pwexperimental_display_driver_imgui",
+    "$dir_pwexperimental_display_imgui",
+    "$dir_pwexperimental_framebuffer_pool",
+    "//applications/app_common:app_common.facade",
+    "//lib/kudzu_buttons_imgui",
+    "//lib/kudzu_imu_imgui",
+    "//lib/pw_touchscreen_imgui",
+  ]
+  sources = [ "common_host_imgui.cc" ]
+  remove_configs = []
+  if (host_os == "linux") {
+    remove_configs += [ "$dir_pw_toolchain/host_clang:linux_sysroot" ]
+  }
+}
+
+pw_source_set("host_null") {
+  public_configs = [ ":common_flags" ]
+  deps = [
+    "$dir_pw_thread:thread",
+    "$dir_pw_thread_stl:thread",
+    "$dir_pwexperimental_display",
+    "$dir_pwexperimental_display_driver_null",
+    "//applications/app_common:app_common.facade",
+    "//lib/kudzu_buttons_null",
+    "//lib/pw_touchscreen_null",
+  ]
+  sources = [ "common_host_null.cc" ]
+}

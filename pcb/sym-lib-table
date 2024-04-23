@@ -1,0 +1,7 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "kudzu-parts")(type "KiCad")(uri "${KIPRJMOD}/kudzu-parts.kicad_sym")(options "")(descr "Kudzu Parts"))
+  (lib (name "Rust_Board")(type "KiCad")(uri "${KIPRJMOD}/../third_party/pcb/esp-rust-board/kicad_libs/Rust_Board.kicad_sym")(options "")(descr "Esp32 C3 Rust Board Parts"))
+  (lib (name "Gekkio_Connector_Specialized")(type "KiCad")(uri "${KIPRJMOD}/../third_party/pcb/gekkio-kicad-libs/Gekkio_Connector_Specialized.kicad_sym")(options "")(descr "Gekkio Specialized Connector Library"))
+  (lib (name "Espressif")(type "KiCad")(uri "${KIPRJMOD}/../third_party/pcb/espressif-kicad-libraries/symbols/Espressif.kicad_sym")(options "")(descr ""))
+)

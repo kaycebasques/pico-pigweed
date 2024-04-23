@@ -1,0 +1,63 @@
+# Copyright 2023 The Pigweed Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+
+import("//build_overrides/pigweed.gni")
+
+import("$dir_pw_arduino_build/arduino.gni")
+import("$dir_pw_build/target_types.gni")
+import("$dir_pw_tokenizer/database.gni")
+import("$dir_pw_unit_test/test.gni")
+
+group("all") {
+  deps = [ ":badge" ]
+}
+
+pw_executable("badge") {
+  sources = [
+    "heart_8x8.h",
+    "hello_my_name_is65x42.h",
+    "kudzu_isometric_text_sprite.h",
+    "main.cc",
+    "name_tag.h",
+    "pw_banner46x10.h",
+    "pw_logo5x7.h",
+  ]
+  deps = [
+    "$dir_pw_log",
+    "$dir_pw_random",
+    "$dir_pw_ring_buffer",
+    "$dir_pw_string",
+    "$dir_pw_sys_io",
+    "$dir_pw_system:target_hooks",
+    "$dir_pw_thread:thread",
+    "$dir_pwexperimental_color",
+    "$dir_pwexperimental_display",
+    "$dir_pwexperimental_draw",
+    "$dir_pwexperimental_framebuffer",
+    "$pw_dir_third_party_32blit:32blit",
+    "//applications/app_common",
+    "//lib/framecounter",
+    "//lib/kudzu_imu",
+    "//lib/random",
+  ]
+  remove_configs = [ "$dir_pw_build:strict_warnings" ]
+
+  if (host_os == "linux") {
+    remove_configs += [ "$dir_pw_toolchain/host_clang:linux_sysroot" ]
+  }
+
+  if (pw_build_EXECUTABLE_TARGET_TYPE == "pico_executable") {
+    ldflags = [ "-Wl,--print-memory-usage" ]
+  }
+}

@@ -1,0 +1,103 @@
+# Copyright 2023 The Pigweed Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+
+import("//build_overrides/pi_pico.gni")
+import("//build_overrides/pigweed.gni")
+
+import("$dir_pw_system/system_target.gni")
+
+if (current_toolchain != default_toolchain) {
+  config("config_includes") {
+    include_dirs = [ "config" ]
+  }
+
+  pw_source_set("freertos_config") {
+    public_configs = [ ":config_includes" ]
+    public_deps = [ "$dir_pw_third_party/freertos:config_assert" ]
+    public = [ "config/FreeRTOSConfig.h" ]
+  }
+
+  pw_source_set("pre_init") {
+    deps = [
+      "$PICO_ROOT/src/common/pico_base",
+      "$PICO_ROOT/src/common/pico_stdlib",
+      "$PICO_ROOT/src/rp2_common/pico_malloc",
+      "$dir_pw_string",
+      "$dir_pw_system",
+      "$dir_pw_third_party/freertos",
+      "//lib/rpc:kudzu_service",
+    ]
+    sources = [ "boot.cc" ]
+  }
+}
+
+pw_system_target("rp2040") {
+  cpu = PW_SYSTEM_CPU.CORTEX_M0PLUS
+  scheduler = PW_SYSTEM_SCHEDULER.FREERTOS
+  use_pw_malloc = false
+
+  global_configs = [ "$dir_pigweed/targets/rp2040:rp2040_hal_config" ]
+
+  build_args = {
+    pw_build_EXECUTABLE_TARGET_TYPE = "pico_executable"
+    pw_build_EXECUTABLE_TARGET_TYPE_FILE =
+        get_path_info("$dir_pigweed/targets/rp2040/pico_executable.gni",
+                      "abspath")
+
+    pw_log_BACKEND = dir_pw_log_string
+    pw_log_string_HANDLER_BACKEND = "$dir_pw_system:log_backend"
+
+    pw_third_party_freertos_CONFIG = "//targets/rp2040:freertos_config"
+    pw_third_party_freertos_PORT = "$dir_pw_third_party/freertos:arm_cm0"
+
+    pw_sys_io_BACKEND = dir_pw_sys_io_rp2040
+
+    pw_build_LINK_DEPS += [
+      "//targets/rp2040:pre_init",
+      "$dir_pw_assert:impl",
+      "$dir_pw_log:impl",
+      "$dir_pw_log_string:handler.impl",
+    ]
+
+    pw_sync_COUNTING_SEMAPHORE_BACKEND =
+        "$dir_pw_sync_freertos:counting_semaphore"
+
+    app_common_BACKEND = "//applications/app_common_impl:pico_st7789_pio"
+
+    pw_app_common_DISPLAY_WIDTH = "320"
+    pw_app_common_DISPLAY_HEIGHT = "240"
+
+    # Kudzu pin assignments.
+    pw_app_common_BACKLIGHT_GPIO = "15"
+    pw_app_common_DISPLAY_TE_GPIO = "16"
+    pw_app_common_DISPLAY_CS_GPIO = "17"
+    pw_app_common_DISPLAY_DC_GPIO = "20"
+    pw_app_common_SPI_MOSI_GPIO = "19"
+    pw_app_common_SPI_CLOCK_GPIO = "18"
+
+    # Data from the display is unused.
+    pw_app_common_SPI_MISO_GPIO = "-1"
+
+    # Display reset pin is on the Kudzu GPIO expander
+    pw_app_common_DISPLAY_RESET_GPIO = "-1"
+
+    # Pico display pack 2 pin assignments.
+    # pw_app_common_BACKLIGHT_GPIO = "20"
+    # pw_app_common_DISPLAY_TE_GPIO = "21"
+    # pw_app_common_DISPLAY_CS_GPIO = "17"
+    # pw_app_common_DISPLAY_DC_GPIO = "16"
+    # pw_app_common_SPI_MOSI_GPIO = "19"
+    # pw_app_common_SPI_CLOCK_GPIO = "18"
+  }
+}
